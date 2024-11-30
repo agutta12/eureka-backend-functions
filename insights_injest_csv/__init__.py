@@ -2,7 +2,8 @@ import logging
 import os
 import csv
 import azure.functions as func
-import pyodbc  # Use the appropriate DB library for your database
+import pyodbc
+from io import StringIO  # Import StringIO for file-like string handling
 
 # Database connection details (update these with your EurekaDB credentials)
 DB_CONNECTION_STRING = os.getenv("DB_CONNECTION_STRING")
@@ -25,9 +26,9 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         cursor = conn.cursor()
 
         # Parse the uploaded CSV
-        file_content = file.stream.read().decode('utf-8')
-        csv_reader = csv.reader(file_content.splitlines(), skipinitialspace=True)
-        
+        file_content = file.stream.read().decode('utf-8')  # Decode bytes to string
+        csv_reader = csv.reader(StringIO(file_content))  # Use StringIO for file-like behavior
+
         # Extract and validate the headers
         headers = next(csv_reader, None)
         expected_headers = [
@@ -42,7 +43,6 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
 
         # Process each row in the CSV
         for row in csv_reader:
-            # Ensure row has the correct number of fields
             if len(row) != len(expected_headers):
                 rejected_records.append({"row": row, "reason": "Invalid number of fields"})
                 continue
