@@ -26,10 +26,10 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
 
         # Parse the uploaded CSV
         file_content = file.stream.read().decode('utf-8')
-        csv_reader = csv.reader(file_content.splitlines())
+        csv_reader = csv.reader(file_content.splitlines(), skipinitialspace=True)
         
         # Extract and validate the headers
-        headers = next(csv_reader)
+        headers = next(csv_reader, None)
         expected_headers = [
             "insight_type", "data_source", "audience", "domain", "confidence_level", 
             "timeliness", "delivery_channel", "alignment_goal", "value_priority", "content"
@@ -42,6 +42,11 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
 
         # Process each row in the CSV
         for row in csv_reader:
+            # Ensure row has the correct number of fields
+            if len(row) != len(expected_headers):
+                rejected_records.append({"row": row, "reason": "Invalid number of fields"})
+                continue
+
             (
                 insight_type, data_source, audience, domain, confidence_level,
                 timeliness, delivery_channel, alignment_goal, value_priority, content
