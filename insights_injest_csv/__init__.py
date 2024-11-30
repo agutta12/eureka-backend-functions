@@ -15,6 +15,10 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
     if not file:
         return func.HttpResponse("No file uploaded.", status_code=400)
 
+    # Track results
+    inserted_count = 0
+    rejected_records = []
+
     try:
         # Connect to the database
         conn = pyodbc.connect(DB_CONNECTION_STRING)
@@ -36,40 +40,63 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
                 status_code=400
             )
 
-        # Insert each row into the database
+        # Process each row in the CSV
         for row in csv_reader:
             (
                 insight_type, data_source, audience, domain, confidence_level,
                 timeliness, delivery_channel, alignment_goal, value_priority, content
             ) = row
 
-            # SQL query using subqueries to resolve foreign keys
-            cursor.execute("""
-                INSERT INTO Insights (
-                    insight_type_id, data_source_id, audience_id, domain_id, confidence_level_id,
-                    timeliness_id, delivery_channel_id, alignment_goal_id, value_priority_id, content
-                )
-                VALUES (
-                    (SELECT id FROM InsightTypes WHERE type_name = ?),
-                    (SELECT id FROM DataSources WHERE source_name = ?),
-                    (SELECT id FROM Audiences WHERE audience_name = ?),
-                    (SELECT id FROM Domains WHERE domain_name = ?),
-                    (SELECT id FROM ConfidenceLevels WHERE level_name = ?),
-                    (SELECT id FROM Timeliness WHERE timeliness_type = ?),
-                    (SELECT id FROM DeliveryChannels WHERE channel_name = ?),
-                    (SELECT id FROM AlignmentGoals WHERE goal_name = ?),
-                    (SELECT id FROM ValuePriorities WHERE priority_name = ?),
-                    ?
-                )
-            """, (
-                insight_type, data_source, audience, domain, confidence_level,
-                timeliness, delivery_channel, alignment_goal, value_priority, content
-            ))
-        
+            # Check if the record already exists (based on the `content` field)
+            cursor.execute("SELECT COUNT(*) FROM Insights WHERE content = ?", (content,))
+            record_exists = cursor.fetchone()[0] > 0
+
+            if record_exists:
+                rejected_records.append({"content": content, "reason": "Duplicate content"})
+                continue
+
+            try:
+                # Insert the new record using subqueries to resolve foreign keys
+                cursor.execute("""
+                    INSERT INTO Insights (
+                        insight_type_id, data_source_id, audience_id, domain_id, confidence_level_id,
+                        timeliness_id, delivery_channel_id, alignment_goal_id, value_priority_id, content
+                    )
+                    VALUES (
+                        (SELECT id FROM InsightTypes WHERE type_name = ?),
+                        (SELECT id FROM DataSources WHERE source_name = ?),
+                        (SELECT id FROM Audiences WHERE audience_name = ?),
+                        (SELECT id FROM Domains WHERE domain_name = ?),
+                        (SELECT id FROM ConfidenceLevels WHERE level_name = ?),
+                        (SELECT id FROM Timeliness WHERE timeliness_type = ?),
+                        (SELECT id FROM DeliveryChannels WHERE channel_name = ?),
+                        (SELECT id FROM AlignmentGoals WHERE goal_name = ?),
+                        (SELECT id FROM ValuePriorities WHERE priority_name = ?),
+                        ?
+                    )
+                """, (
+                    insight_type, data_source, audience, domain, confidence_level,
+                    timeliness, delivery_channel, alignment_goal, value_priority, content
+                ))
+                inserted_count += 1
+            except Exception as e:
+                rejected_records.append({"content": content, "reason": str(e)})
+                continue
+
         # Commit the transaction
         conn.commit()
 
-        return func.HttpResponse("File processed and data inserted successfully.", status_code=200)
+        # Construct response
+        response = {
+            "inserted_count": inserted_count,
+            "rejected_records": rejected_records
+        }
+
+        return func.HttpResponse(
+            body=str(response),
+            status_code=200,
+            mimetype="application/json"
+        )
 
     except Exception as e:
         logging.error(f"Error processing file: {e}")
