@@ -1,3 +1,11 @@
+import logging
+import pyodbc
+import os
+import csv
+from io import StringIO  # Required for file-like string handling
+import azure.functions as func
+# Database connection details (update these with your EurekaDB credentials)
+DB_CONNECTION_STRING = os.getenv("SqlConnectionString")
 def main(req: func.HttpRequest) -> func.HttpResponse:
     try:
         logging.info("Processing CSV upload request.")
@@ -16,6 +24,18 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         headers = next(csv_reader, None)
         logging.info(f"CSV headers: {headers}")
 
+        # Expected CSV headers
+        expected_headers = [
+            "content", "created_at", "insight_type", "data_source", "audience", 
+            "domain", "confidence_level", "timeliness", "delivery_channel", 
+            "alignment_goal", "value_priority"
+        ]
+
+        # Validate headers
+        if headers != expected_headers:
+            logging.error(f"Invalid CSV headers. Expected: {expected_headers}, Received: {headers}")
+            return func.HttpResponse(f"Invalid CSV headers. Expected: {expected_headers}", status_code=400)
+
         # Connect to the database
         conn = pyodbc.connect(DB_CONNECTION_STRING)
         cursor = conn.cursor()
@@ -29,7 +49,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
                 cursor.execute("""
                     INSERT INTO Insights (
                         insight_type_id, data_source_id, audience_id, domain_id, confidence_level_id,
-                        timeliness_id, delivery_channel_id, alignment_goal_id, value_priority_id, content
+                        timeliness_id, delivery_channel_id, alignment_goal_id, value_priority_id, created_at, content
                     )
                     VALUES (
                         (SELECT id FROM InsightTypes WHERE type_name = ?),
@@ -41,11 +61,20 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
                         (SELECT id FROM DeliveryChannels WHERE channel_name = ?),
                         (SELECT id FROM AlignmentGoals WHERE goal_name = ?),
                         (SELECT id FROM ValuePriorities WHERE priority_name = ?),
-                        ?
+                        ?, ?
                     )
                 """, (
-                    row[0], row[1], row[2], row[3], row[4],
-                    row[5], row[6], row[7], row[8], row[9]
+                    row[2],  # insight_type
+                    row[3],  # data_source
+                    row[4],  # audience
+                    row[5],  # domain
+                    row[6],  # confidence_level
+                    row[7],  # timeliness
+                    row[8],  # delivery_channel
+                    row[9],  # alignment_goal
+                    row[10], # value_priority
+                    row[1],  # created_at
+                    row[0],  # content
                 ))
                 inserted_count += 1
                 logging.info(f"Row inserted successfully: {row}")
