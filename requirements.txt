@@ -4,3 +4,7 @@ packaging==24.2
 pluggy==1.5.0
 pyodbc==5.2.0
 pytest==8.3.3
+pandas
+joblib
+pyodbc
+scikit-learn
