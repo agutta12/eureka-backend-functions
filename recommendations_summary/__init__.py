@@ -5,39 +5,51 @@ import json
 import os
 
 # Database connection string
-CONNECTION_STRING  = os.getenv("SqlConnectionString")
+CONNECTION_STRING = os.getenv("SqlConnectionString")
+
 def main(req: func.HttpRequest) -> func.HttpResponse:
     logging.info("Fetching recommendations with insight content.")
 
     try:
-        # Get optional 'insight_id' from query parameters
+        # Validate connection string
+        if not CONNECTION_STRING:
+            logging.error("Database connection string is not configured.")
+            return func.HttpResponse(
+                "Internal server error: Missing database connection string.",
+                status_code=500
+            )
+
+        # Get 'insight_id' from query parameters
         insight_id = req.params.get('insight_id')
+        if not insight_id:
+            return func.HttpResponse(
+                "Insight ID is required.",
+                status_code=400
+            )
 
         # Connect to the database
         with pyodbc.connect(CONNECTION_STRING) as conn:
             cursor = conn.cursor()
 
-            # SQL query to fetch recommendations along with insight content
-            if insight_id:
-                query = """
-                SELECT r.id, r.insight_id, i.content, r.recommendation_text, r.confidence_level_id, 
-                       r.delivery_channel_id, r.status, r.created_at, r.updated_at
-                FROM Recommendations r
-                JOIN Insights i ON r.insight_id = i.id
-                WHERE r.insight_id = ?
-                """
-                cursor.execute(query, insight_id)
-            else:
-                query = """
-                SELECT r.id, r.insight_id, i.content, r.recommendation_text, r.confidence_level_id, 
-                       r.delivery_channel_id, r.status, r.created_at, r.updated_at
-                FROM Recommendations r
-                JOIN Insights i ON r.insight_id = i.id
-                """
-                cursor.execute(query)
+            # SQL query to fetch recommendations for the given insight_id
+            query = """
+            SELECT r.id, r.insight_id, i.content, r.recommendation_text, r.confidence_level_id, 
+                   r.delivery_channel_id, r.status, r.created_at, r.updated_at
+            FROM Recommendations r
+            JOIN Insights i ON r.insight_id = i.id
+            WHERE r.insight_id = ?
+            """
+            cursor.execute(query, insight_id)
 
             # Fetch all results
             recommendations = cursor.fetchall()
+
+            # Check if recommendations exist
+            if not recommendations:
+                return func.HttpResponse(
+                    f"No recommendations found for insight ID {insight_id}.",
+                    status_code=404
+                )
 
             # Convert results to JSON
             recommendations_list = []
@@ -45,7 +57,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
                 recommendations_list.append({
                     "id": row[0],
                     "insight_id": row[1],
-                    "insight_content": row[2],  # Adding content from Insights table
+                    "insight_content": row[2],
                     "recommendation_text": row[3],
                     "confidence_level_id": row[4],
                     "delivery_channel_id": row[5],
@@ -61,6 +73,15 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
             status_code=200
         )
 
+    except pyodbc.Error as db_err:
+        logging.error(f"Database error: {db_err}")
+        return func.HttpResponse(
+            "Internal server error: Database query failed.",
+            status_code=500
+        )
     except Exception as e:
         logging.error(f"Error fetching recommendations: {e}")
-        return func.HttpResponse(f"Internal server error: {str(e)}", status_code=500)
+        return func.HttpResponse(
+            "Internal server error.",
+            status_code=500
+        )

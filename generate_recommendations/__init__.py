@@ -40,7 +40,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
             WHERE id = ?
             """
             data = pd.read_sql(query, conn, params=[insight_id])
-
+            print("Data SIze --------------------.", data.size) 
             if data.empty:
                 return func.HttpResponse("Insight not found.", status_code=404)
 
