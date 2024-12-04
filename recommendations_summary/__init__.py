@@ -23,12 +23,15 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         with pyodbc.connect(CONNECTION_STRING) as conn:
             cursor = conn.cursor()
 
-            # SQL query to fetch all recommendations
+            # SQL query to fetch all recommendations with joined data
             query = """
-            SELECT r.id, r.insight_id, i.content, r.recommendation_text, r.confidence_level_id, 
-                   r.delivery_channel_id, r.status, r.created_at, r.updated_at
+            SELECT r.id, i.content, r.recommendation_text, 
+                   cl.level_name, dc.channel_name, r.status, 
+                   r.created_at, r.updated_at
             FROM Recommendations r
             JOIN Insights i ON r.insight_id = i.id
+            JOIN ConfidenceLevels cl ON r.confidence_level_id = cl.id
+            JOIN DeliveryChannels dc ON r.delivery_channel_id = dc.id
             """
             cursor.execute(query)
 
@@ -47,14 +50,13 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
             for row in recommendations:
                 recommendations_list.append({
                     "id": row[0],
-                    "insight_id": row[1],
-                    "insight_content": row[2],
-                    "recommendation_text": row[3],
-                    "confidence_level_id": row[4],
-                    "delivery_channel_id": row[5],
-                    "status": row[6],
-                    "created_at": row[7].strftime("%Y-%m-%d %H:%M:%S") if row[7] else None,
-                    "updated_at": row[8].strftime("%Y-%m-%d %H:%M:%S") if row[8] else None
+                    "insight_content": row[1],
+                    "recommendation_text": row[2],
+                    "confidence_level_name": row[3],
+                    "delivery_channel_name": row[4],
+                    "status": row[5],
+                    "created_at": row[6].strftime("%Y-%m-%d %H:%M:%S") if row[6] else None,
+                    "updated_at": row[7].strftime("%Y-%m-%d %H:%M:%S") if row[7] else None
                 })
 
         # Return recommendations as JSON
