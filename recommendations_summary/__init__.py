@@ -37,7 +37,6 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
                    r.delivery_channel_id, r.status, r.created_at, r.updated_at
             FROM Recommendations r
             JOIN Insights i ON r.insight_id = i.id
-            WHERE r.insight_id = ?
             """
             cursor.execute(query, insight_id)
 

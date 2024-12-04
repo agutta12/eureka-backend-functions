@@ -6,6 +6,7 @@ from io import StringIO  # Required for file-like string handling
 import azure.functions as func
 # Database connection details (update these with your EurekaDB credentials)
 DB_CONNECTION_STRING = os.getenv("SqlConnectionString")
+
 def main(req: func.HttpRequest) -> func.HttpResponse:
     try:
         logging.info("Processing CSV upload request.")

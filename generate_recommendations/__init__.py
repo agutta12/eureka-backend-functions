@@ -5,6 +5,7 @@ import pandas as pd
 import joblib
 import datetime
 import os
+import json
 
 # Load the pre-trained ML model
 # Get the directory of the current script
@@ -26,10 +27,15 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
     logging.info("Processing insight for generating a recommendation.")
 
     try:
-        # Get the insight_id from the request
-        insight_id = req.params.get('insight_id')
+        # Parse the request body to get insight_id
+        try:
+            req_body = req.get_json()
+        except ValueError:
+            return func.HttpResponse("Invalid JSON in request body.", status_code=400)
+
+        insight_id = req_body.get("insight_id")
         if not insight_id:
-            return func.HttpResponse("Insight ID is required.", status_code=400)
+            return func.HttpResponse("Insight ID is required in the request body.", status_code=400)
 
         # Connect to the database
         with pyodbc.connect(CONNECTION_STRING) as conn:
@@ -42,7 +48,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
             WHERE id = ?
             """
             data = pd.read_sql(query, conn, params=[insight_id])
-            print("Data SIze --------------------.", data.size) 
+
             if data.empty:
                 return func.HttpResponse("Insight not found.", status_code=404)
 
@@ -67,8 +73,15 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
             )
             conn.commit()
 
-        return func.HttpResponse("Recommendation generated and stored successfully.", status_code=200)
+        return func.HttpResponse(
+            json.dumps({"message": "Recommendation generated and stored successfully.", "recommendation": recommendation_text}),
+            mimetype="application/json",
+            status_code=200
+        )
 
+    except pyodbc.Error as db_err:
+        logging.error(f"Database error: {db_err}")
+        return func.HttpResponse("Internal server error: Database query failed.", status_code=500)
     except Exception as e:
         logging.error(f"Error generating recommendation: {e}")
-        return func.HttpResponse(f"Internal server error: {str(e)}", status_code=500)
+        return func.HttpResponse("Internal server error.", status_code=500)
