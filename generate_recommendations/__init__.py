@@ -7,7 +7,9 @@ import datetime
 import os
 
 # Load the pre-trained ML model
-MODEL_PATH = "recommendation_model.pkl"
+# Get the directory of the current script
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+MODEL_PATH = os.path.join(BASE_DIR, "recommendation_model.pkl")
 model = joblib.load(MODEL_PATH)
 
 # Database connection string
