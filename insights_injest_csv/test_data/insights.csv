@@ -1,6 +1,6 @@
-content,created_at,insight_type,data_source,audience,domain,confidence_level,timeliness,delivery_channel,alignment_goal,value_priority
-"Members aged 50+ have a 20% higher risk of chronic illness.","2024-01-15 08:30:00","Descriptive","Claims Data","Individual Members","Health Outcomes","High","Historical","Dashboards","Risk Mitigation","Informational"
-"Annual check-ups reduce chronic disease risk by 15%.","2024-01-20 12:45:00","Predictive","EHRs","Member Cohorts","Health Outcomes","Medium","Periodic","Email","Health Improvement","Actionable"
-"Smoking cessation reduces cardiovascular risk by 30%.","2024-02-10 10:20:00","Descriptive","Survey Feedback","Organization-Wide","Health Outcomes","High","Periodic","APIs","Health Improvement","Informational"
-"Flu vaccinations prevent 70% of hospitalizations in seniors.","2024-02-25 15:00:00","Prescriptive","EHRs","Individual Members","Health Outcomes","High","Real-Time","Notifications","Risk Mitigation","Actionable"
-"Exercise programs reduce obesity by 25% among youth.","2024-03-05 09:00:00","Descriptive","Fitness App Integrations","Member Cohorts","Health Outcomes","Medium","Periodic","Notifications","Health Improvement","Informational"
+content,created_at,insight_type,data_source,audience,domain,confidence_level,timeliness,alignment_goal,value_priority
+"Members aged 50+ have a 20% higher risk of chronic illness.","2024-01-15 08:30:00","Descriptive","Claims Data","Individual Members","Health Outcomes","High","Historical","Risk Mitigation","Informational"
+"Annual check-ups reduce chronic disease risk by 15%.","2024-01-20 12:45:00","Predictive","EHRs","Member Cohorts","Health Outcomes","Medium","Periodic","Health Improvement","Actionable"
+"Smoking cessation reduces cardiovascular risk by 30%.","2024-02-10 10:20:00","Descriptive","Survey Feedback","Organization-Wide","Health Outcomes","High","Periodic","Health Improvement","Informational"
+"Flu vaccinations prevent 70% of hospitalizations in seniors.","2024-02-25 15:00:00","Prescriptive","EHRs","Individual Members","Health Outcomes","High","Real-Time","Risk Mitigation","Actionable"
+"Exercise programs reduce obesity by 25% among youth.","2024-03-05 09:00:00","Descriptive","Fitness App Integrations","Member Cohorts","Health Outcomes","Medium","Periodic","Health Improvement","Informational"

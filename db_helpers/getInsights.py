@@ -40,8 +40,6 @@ def read_all_insights():
             cl.description AS confidence_level_description,
             t.timeliness_type AS timeliness,
             t.description AS timeliness_description,
-            dc.channel_name AS delivery_channel,
-            dc.description AS delivery_channel_description,
             ag.goal_name AS alignment_goal,
             ag.description AS alignment_goal_description,
             vp.priority_name AS value_priority,
@@ -60,8 +58,6 @@ def read_all_insights():
             ConfidenceLevels cl ON i.confidence_level_id = cl.id
         JOIN 
             Timeliness t ON i.timeliness_id = t.id
-        JOIN 
-            DeliveryChannels dc ON i.delivery_channel_id = dc.id
         JOIN 
             AlignmentGoals ag ON i.alignment_goal_id = ag.id
         JOIN 
@@ -103,10 +99,6 @@ def read_all_insights():
                 "timeliness": {
                     "type": row.timeliness,
                     "description": row.timeliness_description
-                },
-                "delivery_channel": {
-                    "name": row.delivery_channel,
-                    "description": row.delivery_channel_description
                 },
                 "alignment_goal": {
                     "name": row.alignment_goal,

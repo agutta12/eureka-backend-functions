@@ -6,6 +6,8 @@ import os
 
 # Database connection string
 CONNECTION_STRING = os.getenv("SqlConnectionString")
+MODEL_NAME = "Random Forest Classifier"
+MODEL_FILE_NAME = "recommendation_model.pkl"
 
 def main(req: func.HttpRequest) -> func.HttpResponse:
     logging.info("Fetching all recommendations with insight content.")
@@ -59,9 +61,16 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
                     "updated_at": row[7].strftime("%Y-%m-%d %H:%M:%S") if row[7] else None
                 })
 
-        # Return recommendations as JSON
+        # Include model information in the response
+        response = {
+            "model_name": MODEL_NAME,
+            "model_file_name": MODEL_FILE_NAME,
+            "recommendations": recommendations_list
+        }
+
+        # Return recommendations along with model info as JSON
         return func.HttpResponse(
-            json.dumps(recommendations_list, indent=2),
+            json.dumps(response, indent=2),
             mimetype="application/json",
             status_code=200
         )

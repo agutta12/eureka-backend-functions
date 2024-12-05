@@ -50,7 +50,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
                 cursor.execute("""
                     INSERT INTO Insights (
                         insight_type_id, data_source_id, audience_id, domain_id, confidence_level_id,
-                        timeliness_id, delivery_channel_id, alignment_goal_id, value_priority_id, created_at, content
+                        timeliness_id, alignment_goal_id, value_priority_id, created_at, content
                     )
                     VALUES (
                         (SELECT id FROM InsightTypes WHERE type_name = ?),
@@ -59,7 +59,6 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
                         (SELECT id FROM Domains WHERE domain_name = ?),
                         (SELECT id FROM ConfidenceLevels WHERE level_name = ?),
                         (SELECT id FROM Timeliness WHERE timeliness_type = ?),
-                        (SELECT id FROM DeliveryChannels WHERE channel_name = ?),
                         (SELECT id FROM AlignmentGoals WHERE goal_name = ?),
                         (SELECT id FROM ValuePriorities WHERE priority_name = ?),
                         ?, ?
@@ -71,11 +70,11 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
                     row[5],  # domain
                     row[6],  # confidence_level
                     row[7],  # timeliness
-                    row[8],  # delivery_channel
-                    row[9],  # alignment_goal
-                    row[10], # value_priority
-                    row[1],  # created_at
-                    row[0],  # content
+                    
+                    row[8],  # alignment_goal
+                    row[9], # value_priority
+                    row[10],  # created_at
+                    row[11],  # content
                 ))
                 inserted_count += 1
                 logging.info(f"Row inserted successfully: {row}")

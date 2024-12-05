@@ -99,3 +99,20 @@ CREATE TABLE Feedback (
     FOREIGN KEY (delivery_channel_id) REFERENCES DeliveryChannels (id)
 );
 
+CREATE TABLE Recommendations (
+    id INT IDENTITY(1,1) PRIMARY KEY,
+    insight_id INT NOT NULL,
+    recommendation_text NVARCHAR(MAX) NOT NULL,
+    confidence_level_id INT NOT NULL,
+    delivery_channel_id INT NOT NULL,
+    status NVARCHAR(255) DEFAULT 'Pending',
+    created_at DATETIME DEFAULT GETDATE(),
+    updated_at DATETIME DEFAULT GETDATE(),
+    FOREIGN KEY (insight_id) REFERENCES Insights(id),
+    FOREIGN KEY (confidence_level_id) REFERENCES ConfidenceLevels(id),
+    FOREIGN KEY (delivery_channel_id) REFERENCES DeliveryChannels(id)
+);
+
+-- Indexes
+CREATE INDEX IDX_recommendations_insight_id ON Recommendations(insight_id);
+CREATE INDEX IDX_recommendations_status ON Recommendations(status);

@@ -10,6 +10,7 @@ import json
 # Load the pre-trained ML model
 # Get the directory of the current script
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+MODEL_NAME = "Random Forest Classifier";
 MODEL_PATH = os.path.join(BASE_DIR, "recommendation_model.pkl")
 model = joblib.load(MODEL_PATH)
 
