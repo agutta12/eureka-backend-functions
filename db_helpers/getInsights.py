@@ -70,6 +70,7 @@ def read_all_insights():
         # Fetch all rows from the query result
         rows = cursor.fetchall()
 
+
         # Convert rows to a list of dictionaries
         insights = [
             {
