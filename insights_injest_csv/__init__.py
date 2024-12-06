@@ -23,12 +23,13 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         file_content = file.stream.read().decode('utf-8')
         csv_reader = csv.reader(StringIO(file_content))
         headers = next(csv_reader, None)
+
         logging.info(f"CSV headers: {headers}")
 
         # Expected CSV headers
         expected_headers = [
             "content", "created_at", "insight_type", "data_source", "audience", 
-            "domain", "confidence_level", "timeliness", "delivery_channel", 
+            "domain", "confidence_level", "timeliness", 
             "alignment_goal", "value_priority"
         ]
 
@@ -64,17 +65,17 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
                         ?, ?
                     )
                 """, (
-                    row[2],  # insight_type
-                    row[3],  # data_source
-                    row[4],  # audience
-                    row[5],  # domain
-                    row[6],  # confidence_level
-                    row[7],  # timeliness
+                    row[1],  # insight_type
+                    row[2],  # data_source
+                    row[3],  # audience
+                    row[4],  # domain
+                    row[5],  # confidence_level
+                    row[6],  # timeliness
                     
-                    row[8],  # alignment_goal
-                    row[9], # value_priority
-                    row[10],  # created_at
-                    row[11],  # content
+                    row[7],  # alignment_goal
+                    row[8], # value_priority
+                    row[9],  # created_at
+                    row[10],  # content
                 ))
                 inserted_count += 1
                 logging.info(f"Row inserted successfully: {row}")
